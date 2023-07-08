@@ -73,6 +73,7 @@ app.get("/api/posts", async (req, res) => {
     } else {
       posts = await Post.find();
     }
+    l;
     res.json(posts);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
