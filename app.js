@@ -65,7 +65,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/welcome", auth, async (req, res) => {
+app.get("/alive", auth, async (req, res) => {
   res.status(200).send("Welcome");
 });
 
