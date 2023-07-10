@@ -1,4 +1,5 @@
 require("dotenv").config();
+const pool = require("../db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("./model/user");
@@ -12,17 +13,17 @@ router.post("/register", async (req, res) => {
     if (!(email && password && first_name && last_name)) {
       res.status(400).send("All input os required");
     }
-    const oldUser = await User.findOne({ email });
+    const oldUser = await pool.query("SELECT * FROM users WHERE user_id=$1", [
+      email,
+    ]);
     if (oldUser) {
       return res.status(409).send("User already exists");
     }
     encryptedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
-      first_name,
-      last_name,
-      email: email.toLowerCase(),
-      password: encryptedPassword,
-    });
+    const user = await pool.query(
+      "INSERT INTO users (first_name, last_name,email,password) VALUES($1, $2, $3) RETURNING *",
+      [first_name, last_name, email, encryptedPassword]
+    );
 
     const token = jwt.sign(
       { user_id: user._id, email },
