@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const User = mongoose.model("User", userSchema);
 
-app.get("api/users", async (req, res) => {
+app.get("/api/users", async (req, res) => {
   try {
     const users = await User.find();
     res.json(users);
@@ -10,7 +10,7 @@ app.get("api/users", async (req, res) => {
   }
 });
 
-app.get("api/users/:id", async (req, res) => {
+app.get("/api/users/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -22,7 +22,7 @@ app.get("api/users/:id", async (req, res) => {
   }
 });
 
-app.post("api/users", async (req, res) => {
+app.post("/api/users", async (req, res) => {
   try {
     const { username, email, password } = req.body;
     const user = new User(username, email, password);
@@ -33,7 +33,7 @@ app.post("api/users", async (req, res) => {
   }
 });
 
-app.put("api/users/:id", async (req, res) => {
+app.put("/api/users/:id", async (req, res) => {
   try {
     const { username, email, password } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -50,7 +50,7 @@ app.put("api/users/:id", async (req, res) => {
   }
 });
 
-app.delete("api/users/:id", async (req, res) => {
+app.delete("/api/users/:id", async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {

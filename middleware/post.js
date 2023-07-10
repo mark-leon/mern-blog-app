@@ -23,7 +23,7 @@ app.get("/api/posts/:id", async (req, res) => {
   }
 });
 
-app.post("api/posts", async (req, res) => {
+app.post("/api/posts", async (req, res) => {
   try {
     const { title, content } = req.body;
     const post = new Post({ title, content });
