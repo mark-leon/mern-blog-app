@@ -27,10 +27,10 @@ db.sequelize
 
 // simple route
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to bezkoder application." });
+  res.json({ message: "Welcome to blog application." });
 });
 
-require("./routes/turorial.routes")(app);
+require("./routes/post.routes")(app);
 require("./routes/user.routes")(app);
 require("./routes/comment.routes")(app);
 
