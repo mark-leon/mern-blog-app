@@ -15,7 +15,7 @@ exports.createComment = (req, res) => {
   const comment = {
     name: req.body.name,
     text: req.body.text,
-    tutorialId: req.body.tutorialId,
+    postId: req.body.postId,
   };
 
   // Save comment in the database
@@ -32,7 +32,7 @@ exports.createComment = (req, res) => {
 };
 
 exports.findAll = (req, res) => {
-  Comment.findAll({ include: ["tutorial"] })
+  Comment.findAll({ include: ["post"] })
     .then((data) => {
       res.send(data);
     })
@@ -45,7 +45,7 @@ exports.findAll = (req, res) => {
 };
 
 exports.findCommentById = (id) => {
-  return Comment.findByPk(id, { include: ["tutorial"] })
+  return Comment.findByPk(id, { include: ["post"] })
     .then((comment) => {
       res.send(comment);
     })
