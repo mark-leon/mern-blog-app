@@ -1,4 +1,4 @@
-const db = require("../models");
+const db = require("../model");
 const Comment = db.comments;
 
 // Create and Save a new Comment
