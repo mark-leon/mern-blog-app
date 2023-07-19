@@ -4,7 +4,7 @@ const Comment = db.comments;
 // Create and Save a new Comment
 exports.createComment = (req, res) => {
   // Validate request
-  if (!req.body.name || !req.body.text || !req.body.tutorialId) {
+  if (!req.body.name || !req.body.text || !req.body.postId) {
     res.status(400).send({
       message: "Content can not be empty!",
     });
