@@ -58,7 +58,7 @@ exports.login = async function (req, res) {
 };
 
 exports.findAll = (req, res) => {
-  User.findAll()
+  User.findAll({ include: ["posts"] })
     .then((data) => {
       res.send(data);
     })
@@ -73,7 +73,7 @@ exports.findAll = (req, res) => {
 exports.findOne = (req, res) => {
   const id = req.params.id;
 
-  User.findByPk(id)
+  User.findByPk(id, { include: ["posts"] })
     .then((data) => {
       res.send(data);
     })

@@ -16,6 +16,7 @@ exports.create = (req, res) => {
     title: req.body.title,
     content: req.body.content,
     published: req.body.published ? req.body.published : false,
+    userId: req.body.userId,
   };
 
   // Save Post in the database
