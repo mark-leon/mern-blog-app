@@ -14,7 +14,7 @@ exports.create = (req, res) => {
   // Create a Post
   const post = {
     title: req.body.title,
-    description: req.body.description,
+    content: req.body.content,
     published: req.body.published ? req.body.published : false,
   };
 
