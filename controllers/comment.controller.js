@@ -1,34 +1,31 @@
 const db = require("../model");
 const Comment = db.comments;
+const User = db.users;
 
 // Create and Save a new Comment
-exports.createComment = (req, res) => {
-  // Validate request
-  if (!req.body.name || !req.body.text || !req.body.postId) {
-    res.status(400).send({
-      message: "Content can not be empty!",
-    });
-    return;
-  }
-
-  // Create a Comment
-  const comment = {
-    name: req.body.name,
-    text: req.body.text,
-    postId: req.body.postId,
-  };
-
-  // Save comment in the database
-  Comment.create(comment)
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Tutorial.",
+exports.createComment = async (req, res) => {
+  try {
+    // Validate request
+    if (!req.body.commented_by || !req.body.text || !req.body.postId) {
+      res.status(400).send({
+        message: "Content can not be empty!",
       });
-    });
+      return;
+    }
+    const user = await User.findByPk(req.body.commented_by);
+    const comment = {
+      commented_by: user,
+      text: req.body.text,
+      postId: req.body.postId,
+    };
+
+    // Create a Comment
+    // Save comment in the database
+    created_comment = await Comment.create(comment);
+    return res.status(201).json(created_comment);
+  } catch (err) {
+    res.status(500).json({ message: err });
+  }
 };
 
 exports.findAll = (req, res) => {

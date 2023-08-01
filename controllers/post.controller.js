@@ -1,5 +1,32 @@
 const db = require("../model");
 const Post = db.posts;
+const User = db.users;
+const multer = require("multer");
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "Images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+exports.upload = multer({
+  storage: storage,
+  limits: { fileSize: "1000000" },
+  fileFilter: (req, file, cb) => {
+    const fileTypes = /jpeg|jpg|png|gif|svg/;
+    const mimeType = fileTypes.test(file.mimetype);
+    const extname = fileTypes.test(path.extname(file.originalname));
+
+    if (mimeType && extname) {
+      return cb(null, true);
+    }
+    cb("Give proper files formate to upload");
+  },
+}).single("image");
 
 // Create and Save a new Post
 exports.create = (req, res) => {
@@ -13,7 +40,10 @@ exports.create = (req, res) => {
 
   // Create a Post
   const post = {
+    image: req.file.path,
     title: req.body.title,
+    subtitle: req.body.subtitle,
+    tag: req.body.tag ? req.body.tag : "Brilliant",
     content: req.body.content,
     published: req.body.published ? req.body.published : false,
     userId: req.body.userId,
@@ -33,7 +63,7 @@ exports.create = (req, res) => {
 
 // Retrieve all Posts from the database.
 exports.findAll = (req, res) => {
-  Post.findAll({ include: ["comments"] })
+  Post.findAll({ include: ["comments", "user"] })
     .then((data) => {
       res.send(data);
     })
@@ -45,18 +75,36 @@ exports.findAll = (req, res) => {
 };
 
 // Find a single Post with an id
-exports.findOne = (req, res) => {
-  const id = req.params.id;
+exports.findOne = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const post = await Post.findByPk(id, { include: ["comments", "user"] });
+    const user = await User.findByPk(post.userId);
 
-  Post.findByPk(id, { include: ["comments"] })
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message: "Error retrieving Post with id=" + id,
-      });
-    });
+    const followerIds = (await user.getFollowers()).map(
+      (following) => following.id
+    );
+    post.dataValues.user.followers = followerIds;
+    res.json(post);
+  } catch (err) {
+    res.status(500).json({ error: error });
+  }
+
+  // const user = await User.findByPk(id);
+
+  // const followerIds = (await user.getFollowers()).map(
+  //   (following) => following.id
+  // );
+  // console.log("hey mike", followerIds);
+  // Post.findByPk(id, { include: ["comments", "user"] })
+  //   .then((data) => {
+  //     res.send(data);
+  //   })
+  //   .catch((err) => {
+  //     res.status(500).send({
+  //       message: "Error retrieving Post with id=" + id,
+  //     });
+  //   });
 };
 
 // Update a Post by the id in the request
@@ -136,4 +184,23 @@ exports.findAllPublished = (req, res) => {
         message: err.message || "Some error occurred while retrieving Posts.",
       });
     });
+};
+
+//find the list of tag
+
+exports.getTag = async (req, res) => {
+  try {
+    const tags = await Post.findAll({
+      attributes: ["tag"], // Fetch only the 'tag' field from the database
+      group: ["tag"], // Group the results by 'tag'
+    });
+
+    // Extract tag values from the results
+    const uniquetags = tags.map((post) => post.tag);
+
+    res.status(200).json({ tags: uniquetags });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };

@@ -1,14 +1,18 @@
 module.exports = (app) => {
   const posts = require("../controllers/post.controller.js");
   const verifyToken = require("./verifyToken");
+  // const upload = require("../controllers/upload.controller.js");
 
   var router = require("express").Router();
 
   // Create a new Tutorial
-  router.post("/", verifyToken, posts.create);
+  router.post("/", verifyToken, posts.upload, posts.create);
 
   // Retrieve all posts
   router.get("/", verifyToken, posts.findAll);
+
+  // Retrieve all tags
+  router.get("/tags", verifyToken, posts.getTag);
 
   // Retrieve all published posts
   router.get("/published", verifyToken, posts.findAllPublished);

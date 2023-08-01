@@ -1,13 +1,22 @@
-module.exports = (sequelize, Sequelize) => {
+module.exports = (sequelize, DataTypes) => {
   const Post = sequelize.define("post", {
     title: {
-      type: Sequelize.STRING,
+      type: DataTypes.TEXT,
+    },
+    subtitle: {
+      type: DataTypes.TEXT,
     },
     content: {
-      type: Sequelize.STRING,
+      type: DataTypes.TEXT,
+    },
+    tag: {
+      type: DataTypes.STRING,
+    },
+    image: {
+      type: DataTypes.STRING,
     },
     published: {
-      type: Sequelize.BOOLEAN,
+      type: DataTypes.BOOLEAN,
     },
   });
 

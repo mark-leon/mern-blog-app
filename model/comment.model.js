@@ -1,10 +1,10 @@
 module.exports = (sequelize, DataTypes) => {
   const Comment = sequelize.define("comment", {
-    name: {
-      type: DataTypes.STRING,
+    commented_by: {
+      type: DataTypes.JSON,
     },
     text: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
     },
   });
 

@@ -1,8 +1,36 @@
 const db = require("../model");
 const User = db.users;
+const Post = db.posts;
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+
+const multer = require("multer");
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "Users");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+exports.upload = multer({
+  storage: storage,
+  limits: { fileSize: "1000000" },
+  fileFilter: (req, file, cb) => {
+    const fileTypes = /jpeg|webp|jpg|png|gif|svg/;
+    const mimeType = fileTypes.test(file.mimetype);
+    const extname = fileTypes.test(path.extname(file.originalname));
+
+    if (mimeType && extname) {
+      return cb(null, true);
+    }
+    cb("Give proper files formate to upload");
+  },
+}).single("image");
 
 exports.register = async function (req, res) {
   try {
@@ -21,13 +49,15 @@ exports.register = async function (req, res) {
     }
     const salt = await bcrypt.genSalt(10);
     var usr = {
+      image: req.file.path,
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       email: req.body.email,
       password: await bcrypt.hash(req.body.password, salt),
     };
+
     created_user = await User.create(usr);
-    res.status(201).json(created_user);
+    return res.status(201).json(created_user);
   } catch (error) {
     res.status(404).json({ message: error });
   }
@@ -70,7 +100,7 @@ exports.findAll = (req, res) => {
 };
 
 // Find a single User with an id
-exports.findOne = (req, res) => {
+exports.findOne = async (req, res) => {
   const id = req.params.id;
 
   User.findByPk(id, { include: ["posts"] })
@@ -107,4 +137,107 @@ exports.delete = (req, res) => {
         message: "Could not delete User with id=" + id,
       });
     });
+};
+
+//follow user
+
+exports.follow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { followId } = req.body;
+
+    const user = await User.findByPk(id);
+    const followUser = await User.findByPk(followId);
+
+    if (!user || !followUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    await user.addFollowings(followUser);
+    res.json({ message: "Followed successfully" });
+  } catch (err) {
+    res.status(400).json({ error: "Failed to follow" });
+  }
+};
+
+//unfollow user
+exports.unfollow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { followId } = req.body;
+
+    const user = await User.findByPk(id);
+    const followUser = await User.findByPk(followId);
+
+    if (!user || !followUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    await user.removeFollowings(followUser);
+    res.json({ message: "Unfollowed successfully" });
+  } catch (err) {
+    res.status(400).json({ error: "Failed to unfollow" });
+  }
+};
+
+// find the user post that the user follows
+
+exports.followingPost = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if the user exists
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Get the IDs of the users that the current user follows
+    const followingIds = (await user.getFollowings()).map(
+      (following) => following.id
+    );
+
+    // Get the posts of the users that the current user follows
+    const followingPosts = await Post.findAll({
+      where: { userId: followingIds },
+      include: ["user"],
+    });
+
+    const brilliantPosts = await Post.findAll({
+      where: { tag: "Brilliant" },
+      include: ["user"],
+    });
+
+    res.json(followingPosts.concat(...brilliantPosts));
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
+
+exports.findFollowings = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if the user exists
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const followingIds = (await user.getFollowings()).map(
+      (following) => following.id
+    );
+    const allUsers = await User.findAll({ include: ["posts"] });
+    // Set "following" to true or false based on the presence of user's ID in the followingIds array
+    const usersWithFollowingStatus = allUsers.map((user) => ({
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      image: user.image,
+      email: user.email,
+      posts: user.posts.length,
+      following: followingIds.includes(user.id),
+    }));
+    res.json(usersWithFollowingStatus);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
 };
