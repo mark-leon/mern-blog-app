@@ -1,6 +1,7 @@
 const db = require("../model");
 const Post = db.posts;
 const User = db.users;
+const Like = db.likes;
 const multer = require("multer");
 const path = require("path");
 
@@ -17,7 +18,7 @@ exports.upload = multer({
   storage: storage,
   limits: { fileSize: "1000000" },
   fileFilter: (req, file, cb) => {
-    const fileTypes = /jpeg|jpg|png|gif|svg/;
+    const fileTypes = /jpeg|jpg|png|gif|svg|webp/;
     const mimeType = fileTypes.test(file.mimetype);
     const extname = fileTypes.test(path.extname(file.originalname));
 
@@ -84,27 +85,11 @@ exports.findOne = async (req, res) => {
     const followerIds = (await user.getFollowers()).map(
       (following) => following.id
     );
-    post.dataValues.user.followers = followerIds;
+    post.dataValues.userFollowers = followerIds;
     res.json(post);
   } catch (err) {
     res.status(500).json({ error: error });
   }
-
-  // const user = await User.findByPk(id);
-
-  // const followerIds = (await user.getFollowers()).map(
-  //   (following) => following.id
-  // );
-  // console.log("hey mike", followerIds);
-  // Post.findByPk(id, { include: ["comments", "user"] })
-  //   .then((data) => {
-  //     res.send(data);
-  //   })
-  //   .catch((err) => {
-  //     res.status(500).send({
-  //       message: "Error retrieving Post with id=" + id,
-  //     });
-  //   });
 };
 
 // Update a Post by the id in the request
@@ -202,5 +187,67 @@ exports.getTag = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+//Like any post
+exports.likePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { userId } = req.body;
+
+    // Check if the post and user exist
+    const post = await Post.findByPk(postId);
+    const user = await User.findByPk(userId);
+
+    if (!post || !user) {
+      return res.status(404).json({ error: "Post or User not found" });
+    }
+
+    // Check if the user has already liked the post
+    const existingLike = await Like.findOne({ where: { userId, postId } });
+
+    if (existingLike) {
+      // return res.status(400).json({ error: "User has already liked the post" });
+      await existingLike.destroy();
+      res.json({ message: "Post disliked successfully" });
+    }
+
+    // Create a new like
+    const like = await Like.create({ userId, postId });
+
+    res.json({ message: "Post liked successfully", like });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
+
+// Dislike a post
+exports.dislikePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { userId } = req.body;
+
+    // Check if the post and user exist
+    const post = await Post.findByPk(postId);
+    const user = await User.findByPk(userId);
+
+    if (!post || !user) {
+      return res.status(404).json({ error: "Post or User not found" });
+    }
+
+    // Check if the user has already liked the post
+    const existingLike = await Like.findOne({ where: { userId, postId } });
+
+    if (!existingLike) {
+      return res.status(400).json({ error: "User has not liked the post" });
+    }
+
+    // Delete the existing like
+    await existingLike.destroy();
+
+    res.json({ message: "Post disliked successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error });
   }
 };

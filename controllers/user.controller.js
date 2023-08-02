@@ -88,7 +88,7 @@ exports.login = async function (req, res) {
 };
 
 exports.findAll = (req, res) => {
-  User.findAll({ include: ["posts"] })
+  User.findAll({ include: ["posts", "likes"] })
     .then((data) => {
       res.send(data);
     })

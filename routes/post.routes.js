@@ -5,7 +5,7 @@ module.exports = (app) => {
 
   var router = require("express").Router();
 
-  // Create a new Tutorial
+  // Create a new posts
   router.post("/", verifyToken, posts.upload, posts.create);
 
   // Retrieve all posts
@@ -17,17 +17,23 @@ module.exports = (app) => {
   // Retrieve all published posts
   router.get("/published", verifyToken, posts.findAllPublished);
 
-  // Retrieve a single Tutorial with id
+  // Retrieve a single post with id
   router.get("/:id", verifyToken, posts.findOne);
 
-  // Update a Tutorial with id
+  // Update a post with id
   router.put("/:id", verifyToken, posts.update);
 
-  // Delete a Tutorial with id
+  // Delete a post with id
   router.delete("/:id", verifyToken, posts.delete);
 
   // Delete all posts
   router.delete("/", verifyToken, posts.deleteAll);
+
+  //like a post
+  router.post("/:postId/like", verifyToken, posts.likePost);
+
+  //dislike a post
+  router.post("/:postId/dislike", verifyToken, posts.dislikePost);
 
   app.use("/api/posts", router);
 };

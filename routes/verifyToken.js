@@ -7,7 +7,9 @@ const verifyToken = (req, res, next) => {
     return res.status(403).send("Token is required");
   }
   try {
-    const decoded = jwt.verify(token, config.TOKEN_KEY);
+    const decoded = jwt.verify(token, config.TOKEN_KEY, {
+      expiresIn: "1h",
+    });
     req.user = decoded;
   } catch (err) {
     return res.status(401).send("Token is invalid");

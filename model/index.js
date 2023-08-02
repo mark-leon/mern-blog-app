@@ -21,6 +21,7 @@ db.sequelize = sequelize;
 db.posts = require("./post.model.js")(sequelize, Sequelize);
 db.comments = require("./comment.model.js")(sequelize, Sequelize);
 db.users = require("./user.model.js")(sequelize, Sequelize);
+db.likes = require("./like.model.js")(sequelize, Sequelize);
 
 db.users.hasMany(db.posts, { as: "posts" });
 db.posts.belongsTo(db.users, {
@@ -32,6 +33,18 @@ db.posts.hasMany(db.comments, { as: "comments" });
 db.comments.belongsTo(db.posts, {
   foreignKey: "postId",
   as: "post",
+});
+
+db.users.hasMany(db.likes, { as: "likes" });
+db.likes.belongsTo(db.users, {
+  foreignKey: "userId",
+  as: "likedUser",
+});
+
+db.posts.hasMany(db.likes, { as: "postlikes" });
+db.likes.belongsTo(db.posts, {
+  foreignKey: "postId",
+  as: "likedPost",
 });
 
 module.exports = db;
