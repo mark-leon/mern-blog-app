@@ -54,6 +54,7 @@ exports.register = async function (req, res) {
       last_name: req.body.last_name,
       email: req.body.email,
       password: await bcrypt.hash(req.body.password, salt),
+      user_type: req.body.user_type ? req.body.user_type : "user",
     };
 
     created_user = await User.create(usr);

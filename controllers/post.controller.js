@@ -44,7 +44,8 @@ exports.create = (req, res) => {
     image: req.file.path,
     title: req.body.title,
     subtitle: req.body.subtitle,
-    tag: req.body.tag ? req.body.tag : "Brilliant",
+    category: req.body.category,
+    tag: req.body.tag,
     content: req.body.content,
     published: req.body.published ? req.body.published : false,
     userId: req.body.userId,
@@ -208,15 +209,17 @@ exports.likePost = async (req, res) => {
     const existingLike = await Like.findOne({ where: { userId, postId } });
 
     if (existingLike) {
-      // return res.status(400).json({ error: "User has already liked the post" });
-      await existingLike.destroy();
-      res.json({ message: "Post disliked successfully" });
+      return res.status(400).json({ error: "User has already liked the post" });
+      // await existingLike.destroy();
+      // const likesCount = await Like.count({ where: { postId } });
+      // res.json({ message: "Post disliked successfully" });
     }
 
     // Create a new like
-    const like = await Like.create({ userId, postId });
+    await Like.create({ userId, postId });
+    const likesCount = await Like.count({ where: { postId } });
 
-    res.json({ message: "Post liked successfully", like });
+    res.json({ message: "Post liked successfully", likesCount });
   } catch (error) {
     res.status(500).json({ error: error });
   }
@@ -245,9 +248,27 @@ exports.dislikePost = async (req, res) => {
 
     // Delete the existing like
     await existingLike.destroy();
+    const likesCount = await Like.count({ where: { postId } });
 
-    res.json({ message: "Post disliked successfully" });
+    res.json({ message: "Post disliked successfully", likesCount });
   } catch (error) {
     res.status(500).json({ error: error });
+  }
+};
+
+//most popular post
+
+exports.mostLikedPosts = async (req, res) => {
+  try {
+    // Fetch the most liked 20 posts
+    const mostLikedPosts = await Post.findAll({
+      include: [User],
+      limit: 20,
+      order: [["numberOfLikes", "DESC"]],
+    });
+
+    res.json(mostLikedPosts);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
   }
 };
