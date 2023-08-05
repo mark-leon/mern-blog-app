@@ -185,6 +185,10 @@ exports.followingPost = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const { page } = req.query;
+    const postsPerPage = 5;
+    const offset = (page - 1) * postsPerPage;
+
     // Check if the user exists
     const user = await User.findByPk(id);
     if (!user) {
@@ -198,16 +202,13 @@ exports.followingPost = async (req, res) => {
 
     // Get the posts of the users that the current user follows
     const followingPosts = await Post.findAll({
-      where: { userId: followingIds },
+      where: { userId: followingIds, user_type: "admin" },
       include: ["user"],
+      limit: postsPerPage,
+      offset,
     });
 
-    const brilliantPosts = await Post.findAll({
-      where: { tag: "Brilliant" },
-      include: ["user"],
-    });
-
-    res.json(followingPosts.concat(...brilliantPosts));
+    res.json(followingPosts);
   } catch (error) {
     res.status(500).json({ error: error });
   }

@@ -34,6 +34,7 @@ module.exports = (app) => {
 
   //dislike a post
   router.post("/:postId/dislike", verifyToken, posts.dislikePost);
+  router.post("/posts/most-recent", verifyToken, posts.mostRecentPosts);
 
   app.use("/api/posts", router);
 };

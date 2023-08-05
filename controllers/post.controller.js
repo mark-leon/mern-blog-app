@@ -64,16 +64,35 @@ exports.create = (req, res) => {
 };
 
 // Retrieve all Posts from the database.
-exports.findAll = (req, res) => {
-  Post.findAll({ include: ["comments", "user"] })
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message: err.message || "Some error occurred while retrieving Posts.",
-      });
+// exports.findAll = (req, res) => {
+//   Post.findAll({ include: ["comments", "user"] })
+//     .then((data) => {
+//       res.send(data);
+//     })
+//     .catch((err) => {
+//       res.status(500).send({
+//         message: err.message || "Some error occurred while retrieving Posts.",
+//       });
+//     });
+// };
+exports.findAll = async (req, res) => {
+  try {
+    // Fetch the most recent 20 posts
+    const { page } = req.query;
+    const postsPerPage = 5;
+    const offset = (page - 1) * postsPerPage;
+
+    // Fetch the most recent posts sorted by createdAt in descending order
+    const posts = await Post.findAll({
+      include: ["user", "comments"],
+      limit: postsPerPage,
+      offset,
     });
+
+    res.json({ posts });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
 };
 
 // Find a single Post with an id
@@ -210,9 +229,6 @@ exports.likePost = async (req, res) => {
 
     if (existingLike) {
       return res.status(400).json({ error: "User has already liked the post" });
-      // await existingLike.destroy();
-      // const likesCount = await Like.count({ where: { postId } });
-      // res.json({ message: "Post disliked successfully" });
     }
 
     // Create a new like
@@ -256,18 +272,24 @@ exports.dislikePost = async (req, res) => {
   }
 };
 
-//most popular post
+//most recent post
 
-exports.mostLikedPosts = async (req, res) => {
+exports.mostRecentPosts = async (req, res) => {
   try {
-    // Fetch the most liked 20 posts
-    const mostLikedPosts = await Post.findAll({
-      include: [User],
-      limit: 20,
-      order: [["numberOfLikes", "DESC"]],
+    // Fetch the most recent 20 posts
+    const { page } = req.query;
+    const postsPerPage = 5;
+    const offset = (page - 1) * postsPerPage;
+
+    // Fetch the most recent posts sorted by createdAt in descending order
+    const mostRecentPosts = await Post.findAll({
+      include: ["user", "comments"],
+      order: [["createdAt", "DESC"]],
+      limit: postsPerPage,
+      offset,
     });
 
-    res.json(mostLikedPosts);
+    res.json({ mostRecentPosts });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
