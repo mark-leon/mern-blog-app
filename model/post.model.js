@@ -26,11 +26,11 @@ module.exports = (sequelize, DataTypes) => {
     published: {
       type: DataTypes.BOOLEAN,
     },
-    numberOfLikes: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
-    },
-    likedUsers: { type: DataTypes.JSON, defaultValue: [] },
+    // numberOfLikes: {
+    //   type: DataTypes.INTEGER,
+    //   defaultValue: 0,
+    // },
+    // likedUsers: { type: DataTypes.JSON, defaultValue: [] },
   });
 
   return Post;
