@@ -63,22 +63,10 @@ exports.create = (req, res) => {
     });
 };
 
-// Retrieve all Posts from the database.
-// exports.findAll = (req, res) => {
-//   Post.findAll({ include: ["comments", "user"] })
-//     .then((data) => {
-//       res.send(data);
-//     })
-//     .catch((err) => {
-//       res.status(500).send({
-//         message: err.message || "Some error occurred while retrieving Posts.",
-//       });
-//     });
-// };
 exports.findAll = async (req, res) => {
   try {
     // Fetch the most recent 20 posts
-    const { page } = req.query;
+    const { page } = req.params;
     const postsPerPage = 5;
     const offset = (page - 1) * postsPerPage;
 
