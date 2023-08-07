@@ -100,6 +100,37 @@ exports.findOne = async (req, res) => {
   }
 };
 
+// Find a single User post with userId and page
+exports.findSingleUserPosts = async (req, res) => {
+  try {
+    const { page } = req.query;
+    const { userId } = req.query;
+    const postsPerPage = 5;
+    const offset = (page - 1) * postsPerPage;
+
+    const totalPosts = await Post.count({
+      where: {
+        userId: userId,
+      },
+    });
+    const totalPages = Math.ceil(totalPosts / postsPerPage);
+
+    // res.json({ posts, totalPages });
+
+    // Fetch the most recent posts sorted by createdAt in descending order
+    const posts = await Post.findAll({
+      where: { userId },
+      // include: ["user", "comments"],
+      limit: postsPerPage,
+      offset,
+    });
+
+    res.json({ posts, totalPages });
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+};
+
 // Update a Post by the id in the request
 exports.update = (req, res) => {
   const id = req.params.id;
@@ -266,11 +297,17 @@ exports.mostRecentPosts = async (req, res) => {
   try {
     // Fetch the most recent 20 posts
     const { page } = req.query;
+    const { userId } = req.query;
     const postsPerPage = 5;
     const offset = (page - 1) * postsPerPage;
 
     // Fetch the most recent posts sorted by createdAt in descending order
     const mostRecentPosts = await Post.findAll({
+      where: {
+        userId: {
+          [sequelize.Op.not]: userId,
+        },
+      },
       include: ["user", "comments"],
       order: [["createdAt", "DESC"]],
       limit: postsPerPage,

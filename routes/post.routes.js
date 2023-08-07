@@ -20,6 +20,9 @@ module.exports = (app) => {
   // Retrieve a single post with id
   router.get("/:id", verifyToken, posts.findOne);
 
+  // Retrieve a single user's post with userId and page number
+  router.get("/", verifyToken, posts.findSingleUserPosts);
+
   // Update a post with id
   router.put("/:id", verifyToken, posts.update);
 
