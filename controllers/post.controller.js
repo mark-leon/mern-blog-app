@@ -4,6 +4,7 @@ const User = db.users;
 const Like = db.likes;
 const multer = require("multer");
 const path = require("path");
+const { Sequelize } = require("sequelize");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -66,20 +67,36 @@ exports.create = (req, res) => {
 exports.findAll = async (req, res) => {
   try {
     // Fetch the most recent 20 posts
-    const { page } = req.params;
-    const postsPerPage = 5;
+    const { page } = req.query;
+    const { userId } = req.query;
+    const { postsPerPage } = req.query;
     const offset = (page - 1) * postsPerPage;
+
+    const totalPosts = await Post.count({
+      where: {
+        userId: {
+          [Sequelize.Op.not]: userId,
+        },
+      },
+    });
+    const totalPages = Math.ceil(totalPosts / postsPerPage);
 
     // Fetch the most recent posts sorted by createdAt in descending order
     const posts = await Post.findAll({
+      where: {
+        userId: {
+          [Sequelize.Op.not]: userId,
+        },
+      },
       include: ["user", "comments"],
+      order: [["createdAt"]], //recent post api needed
       limit: postsPerPage,
       offset,
     });
 
-    res.json({ posts });
+    res.json({ posts, totalPages });
   } catch (error) {
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: error });
   }
 };
 
@@ -96,7 +113,7 @@ exports.findOne = async (req, res) => {
     post.dataValues.userFollowers = followerIds;
     res.json(post);
   } catch (err) {
-    res.status(500).json({ error: error });
+    res.status(500).json({ err: err });
   }
 };
 
@@ -298,23 +315,32 @@ exports.mostRecentPosts = async (req, res) => {
     // Fetch the most recent 20 posts
     const { page } = req.query;
     const { userId } = req.query;
-    const postsPerPage = 5;
+    const postsPerPage = 12;
     const offset = (page - 1) * postsPerPage;
 
     // Fetch the most recent posts sorted by createdAt in descending order
-    const mostRecentPosts = await Post.findAll({
+    const posts = await Post.findAll({
       where: {
         userId: {
-          [sequelize.Op.not]: userId,
+          [Sequelize.Op.not]: userId,
         },
       },
       include: ["user", "comments"],
-      order: [["createdAt", "DESC"]],
+      order: [["createdAt"]],
       limit: postsPerPage,
       offset,
     });
 
-    res.json({ mostRecentPosts });
+    const totalPosts = await Post.count({
+      where: {
+        userId: {
+          [Sequelize.Op.not]: userId,
+        },
+      },
+    });
+    const totalPages = Math.ceil(totalPosts / postsPerPage);
+
+    res.json({ posts });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }

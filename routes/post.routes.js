@@ -9,7 +9,7 @@ module.exports = (app) => {
   router.post("/", verifyToken, posts.upload, posts.create);
 
   // Retrieve all posts
-  router.get("/all/:page", verifyToken, posts.findAll);
+  router.get("/all", verifyToken, posts.findAll);
 
   // Retrieve all tags
   router.get("/tags", verifyToken, posts.getTag);

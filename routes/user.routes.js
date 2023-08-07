@@ -8,7 +8,7 @@ module.exports = (app) => {
   router.post("/login", user.login);
   router.post("/follow/:id", verifyToken, user.follow);
   router.post("/unfollow/:id", verifyToken, user.unfollow);
-  router.get("/followings/:id", verifyToken, user.followingPost);
+  router.get("/followings", verifyToken, user.followingPost);
   router.get("/", verifyToken, user.findAll);
   router.get("/:id", verifyToken, user.findOne);
   router.get("/followers/:id", verifyToken, user.findFollowings);

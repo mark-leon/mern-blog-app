@@ -183,17 +183,19 @@ exports.unfollow = async (req, res) => {
 
 exports.followingPost = async (req, res) => {
   try {
-    const { id } = req.params;
-
+    const { userId } = req.query;
     const { page } = req.query;
     const postsPerPage = 5;
     const offset = (page - 1) * postsPerPage;
 
     // Check if the user exists
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
+    // const admin = await User.find({ where: { user_type: "admin" } });
+    const admin = await User.findOne({ where: { user_type: "admin" } });
 
     // Get the IDs of the users that the current user follows
     const followingIds = (await user.getFollowings()).map(
@@ -201,14 +203,21 @@ exports.followingPost = async (req, res) => {
     );
 
     // Get the posts of the users that the current user follows
-    const followingPosts = await Post.findAll({
-      where: { userId: followingIds, user_type: "admin" },
+    const posts = await Post.findAll({
+      where: { userId: followingIds, userId: admin.id },
       include: ["user"],
       limit: postsPerPage,
       offset,
     });
 
-    res.json(followingPosts);
+    //Get the total pages
+
+    const totalPosts = await Post.count({
+      where: { userId: followingIds, userId: admin.id },
+    });
+    const totalPages = Math.ceil(totalPosts / postsPerPage);
+
+    res.json({ posts, totalPages });
   } catch (error) {
     res.status(500).json({ error: error });
   }
