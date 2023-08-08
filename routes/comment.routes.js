@@ -9,6 +9,7 @@ module.exports = (app) => {
   // Retrieve all Tutorials
   router.get("/:id", verifyToken, comment.findCommentById);
   router.get("/", verifyToken, comment.findAll);
+  router.delete("/:id", verifyToken, comment.deleteSingleComment);
   router.delete("/", verifyToken, comment.deleteAll);
   app.use("/api/comment", router);
 };

@@ -51,6 +51,30 @@ exports.findCommentById = (id) => {
     });
 };
 
+exports.deleteSingleComment = (req, res) => {
+  const id = req.params.id;
+
+  Comment.destroy({
+    where: { id: id },
+  })
+    .then((num) => {
+      if (num == 1) {
+        res.send({
+          message: "Comment was deleted successfully!",
+        });
+      } else {
+        res.send({
+          message: `Cannot delete comment with id=${id}. Maybe Comment was not found!`,
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Could not delete comment with id=" + id,
+      });
+    });
+};
+
 exports.deleteAll = (req, res) => {
   Comment.destroy({
     where: {},
