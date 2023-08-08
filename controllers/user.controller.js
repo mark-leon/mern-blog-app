@@ -7,6 +7,7 @@ require("dotenv").config();
 
 const multer = require("multer");
 const path = require("path");
+const { Sequelize } = require("sequelize");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -88,16 +89,27 @@ exports.login = async function (req, res) {
   }
 };
 
-exports.findAll = (req, res) => {
-  User.findAll({ include: ["posts", "likes"] })
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message: err.message || "Some error occurred while retrieving users.",
-      });
+exports.findAll = async (req, res) => {
+  try {
+    // Fetch the most recent 20 posts
+    const { userId } = req.query;
+
+    // Fetch the most recent posts sorted by createdAt in descending order
+    const users = await User.findAll({
+      where: {
+        id: {
+          [Sequelize.Op.not]: userId,
+        },
+        user_type: {
+          [Sequelize.Op.not]: "admin",
+        },
+      },
+      include: ["posts"],
     });
+    res.json({ users });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
 };
 
 // Find a single User with an id
@@ -164,7 +176,7 @@ exports.follow = async (req, res) => {
 exports.unfollow = async (req, res) => {
   try {
     const { id } = req.params;
-    const { followId } = req.body;
+    const { followId } = req.body; //s leon
 
     const user = await User.findByPk(id);
     const followUser = await User.findByPk(followId);
@@ -202,9 +214,11 @@ exports.followingPost = async (req, res) => {
       (following) => following.id
     );
 
+    const followers = followingIds.concat(admin.id);
+
     // Get the posts of the users that the current user follows
     const posts = await Post.findAll({
-      where: { userId: followingIds, userId: admin.id },
+      where: { userId: followers },
       include: ["user"],
       limit: postsPerPage,
       offset,
@@ -213,7 +227,7 @@ exports.followingPost = async (req, res) => {
     //Get the total pages
 
     const totalPosts = await Post.count({
-      where: { userId: followingIds, userId: admin.id },
+      where: { userId: followers },
     });
     const totalPages = Math.ceil(totalPosts / postsPerPage);
 
