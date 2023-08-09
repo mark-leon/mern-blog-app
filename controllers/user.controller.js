@@ -104,7 +104,7 @@ exports.findAll = async (req, res) => {
           [Sequelize.Op.not]: "admin",
         },
       },
-      include: ["posts"],
+      include: ["posts", "likes"],
     });
     res.json({ users });
   } catch (error) {

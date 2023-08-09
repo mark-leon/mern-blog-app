@@ -110,6 +110,8 @@ exports.findOne = async (req, res) => {
     const followerIds = (await user.getFollowers()).map(
       (following) => following.id
     );
+    const likesCount = await Like.count({ where: { postId: id } });
+    post.dataValues.likesCount = likesCount;
     post.dataValues.userFollowers = followerIds;
     res.json(post);
   } catch (err) {
