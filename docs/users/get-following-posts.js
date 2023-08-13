@@ -1,12 +1,12 @@
 module.exports = {
   get: {
-    tags: ["posts"],
-    description: "Get all posts",
-    operationId: "getPosts",
+    tags: ["users"],
+    description: "Get following posts",
+    operationId: "getUsers",
     parameters: [],
     responses: {
       200: {
-        description: "Posts were obtained",
+        description: "Users were obtained",
         content: {
           "application/json": {
             schema: {

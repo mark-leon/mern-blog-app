@@ -4,9 +4,12 @@ const createUser = require("./register");
 const loginUser = require("./login");
 const updateUser = require("./update-user");
 const deleteUser = require("./delete-user");
+const followUser = require("./follow-user");
+const unfollowUser = require("./unfollow-user");
+const followingPost = require("./get-following-posts");
 
 module.exports = {
-  "/user": {
+  "/user?userId={userId}": {
     ...getUsers,
   },
   "/user/register": {
@@ -19,5 +22,14 @@ module.exports = {
     ...getUser,
     ...updateUser,
     ...deleteUser,
+  },
+  "/user/follow/{id}": {
+    ...followUser,
+  },
+  "/user/unfollow/{id}": {
+    ...unfollowUser,
+  },
+  "/user/followings?userId={userId}&page={page}": {
+    ...followingPost,
   },
 };
